@@ -1,0 +1,28 @@
+{
+  "name": "learn-and-be-curious-static-website",
+  "description": "Website for the ATA Learn and Be Curious project",
+  "version": "1.0.0",
+  "license": "UNLICENSED",
+  "main": "js/index.js",
+  "npm-pretty-much": {
+    "consumeLibCommonJs": true,
+    "runTest": "never"
+  },
+  "scripts": {
+    "prepublishOnly": "npm run build",
+    "build": "webpack --mode production --env production --devtool=source-map",
+    "start": "webpack-dev-server -d eval-source-map --mode=development --env=development --hot"
+  },
+  "dependencies": {
+    "axios": "^1.3.5",
+    "clean-webpack-plugin": "^4.0.0",
+    "toastify-js": "^1.11.2",
+    "webpack": "^5.78.0",
+    "webpack-cli": "^5.0.1",
+    "webpack-dev-server": "^4.13.2"
+  },
+  "devDependencies": {
+    "copy-webpack-plugin": "^11.0.0",
+    "html-webpack-plugin": "^5.5.0"
+  }
+}

@@ -1,0 +1,9 @@
+plugins {
+    id("com.github.node-gradle.node") version "3.2.1"
+}
+
+npm_build {
+    dependsOn("npm_install")
+    dependsOn("npm_run_clean")
+    tasks.findByName('npm_run_clean').mustRunAfter 'npm_install'
+}
