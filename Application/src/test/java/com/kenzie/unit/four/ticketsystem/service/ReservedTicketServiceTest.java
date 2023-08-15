@@ -18,6 +18,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static java.util.UUID.randomUUID;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -104,6 +105,38 @@ public class ReservedTicketServiceTest {
     /** ------------------------------------------------------------------------
      *  reservedTicketService.reserveTicket
      *  ------------------------------------------------------------------------ **/
+    @Test
+    void reserveTicketReserves(){
+        ReservedTicket reservedTicket = new ReservedTicket("123",
+                "456", "date", false, "date", false);
+        String concertId = reservedTicket.getConcertId();
+        Concert concert = new Concert("123", "Paramore", "date", 50.0, false);
+
+        when(concertService.findByConcertId(concertId)).thenReturn(concert);
+
+        // Act
+        ReservedTicket result = reservedTicketService.reserveTicket(reservedTicket);
+
+        // Assert
+        verify(reservedTicketRepository).save(any(ReserveTicketRecord.class));
+       Assertions.assertTrue(reservedTicketsQueue.contains(result));
+
+    }
+
+    @Test
+    void reserveTicketDoesntReserve(){
+        ReservedTicket reservedTicket = new ReservedTicket("123",
+                "456", "date", false, "date", false);
+        String concertId = reservedTicket.getConcertId();
+        Concert concert = new Concert(concertId, "Paramore", "date", 50.0, true);
+
+        when(concertService.findByConcertId(concertId)).thenReturn(concert);
+
+        // Act and Assert
+        assertThrows(ResponseStatusException.class, () -> {
+            reservedTicketService.reserveTicket(reservedTicket);
+        });
+    }
 
     // Write additional tests here
 

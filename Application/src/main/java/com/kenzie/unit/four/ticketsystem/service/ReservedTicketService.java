@@ -2,9 +2,12 @@ package com.kenzie.unit.four.ticketsystem.service;
 
 import com.kenzie.unit.four.ticketsystem.repositories.ReservedTicketRepository;
 import com.kenzie.unit.four.ticketsystem.repositories.model.ReserveTicketRecord;
+import com.kenzie.unit.four.ticketsystem.service.model.Concert;
 import com.kenzie.unit.four.ticketsystem.service.model.ReservedTicket;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,7 +62,24 @@ public class ReservedTicketService {
 
     public ReservedTicket reserveTicket(ReservedTicket reservedTicket) {
         // Your code here
-        return null;
+        String concertId = reservedTicket.getConcertId();
+
+        Concert concert = concertService.findByConcertId(concertId);
+        if(concert == null || concert.getReservationClosed()){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Concert not available");
+        }
+        ReserveTicketRecord record = new ReserveTicketRecord();
+
+        record.setTicketId(reservedTicket.getTicketId());
+        record.setConcertId(reservedTicket.getConcertId());
+        record.setDateOfReservation(reservedTicket.getDateOfReservation());
+        record.setDateReservationClosed(reservedTicket.getDateReservationClosed());
+        record.setReservationClosed(reservedTicket.getReservationClosed());
+        record.setPurchasedTicket(reservedTicket.getTicketPurchased());
+        reservedTicketRepository.save(record);
+
+        reservedTicketsQueue.add(reservedTicket);
+        return reservedTicket;
     }
 
     public ReservedTicket findByReserveTicketId(String reserveTicketId) {
@@ -79,7 +99,21 @@ public class ReservedTicketService {
 
     public List<ReservedTicket> findByConcertId(String concertId) {
         // Your code here
-        return null;
+        List<ReserveTicketRecord> reserveTicketRecords = reservedTicketRepository.findByConcertId(concertId);
+        List<ReservedTicket> reservedTickets = new ArrayList<>();
+
+        for(ReserveTicketRecord record: reserveTicketRecords){
+            ReservedTicket reservedTicket = new ReservedTicket(
+                    record.getTicketId(),
+                    record.getConcertId(),
+                    record.getDateOfReservation(),
+                    record.getReservationClosed(),
+                    record.getDateReservationClosed(),
+                    record.getPurchasedTicket());
+            reservedTickets.add(reservedTicket);
+        }
+
+        return reservedTickets;
     }
 
     public ReservedTicket updateReserveTicket(ReservedTicket reservedTicket) {

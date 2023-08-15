@@ -39,18 +39,21 @@ public class ConcertService {
     }
 
     public Concert findByConcertId(String concertId) {
-        Optional<ConcertRecord> optionalRecord = concertRepository.findById(concertId);
-
-        if (optionalRecord.isPresent()) {
-            ConcertRecord record = optionalRecord.get();
-            return new Concert(record.getId(),
-                    record.getName(),
-                    record.getDate(),
-                    record.getTicketBasePrice(),
-                    record.getReservationClosed());
-        } else {
-            return null;
+        Concert cachedConcert = cache.get(concertId);
+        if(cachedConcert != null){
+            return  cachedConcert;
         }
+        Concert concertFromService = concertRepository.findById(concertId)
+                .map(concert -> new Concert(concert.getId(),
+                        concert.getName(),
+                        concert.getDate(),
+                        concert.getTicketBasePrice(),
+                        concert.getReservationClosed()))
+                .orElse(null);
+        if(concertFromService != null){
+            cache.add(concertFromService.getId(), concertFromService);
+        }
+        return concertFromService;
     }
 
     public Concert addNewConcert(Concert concert) {
@@ -73,10 +76,14 @@ public class ConcertService {
             concertRecord.setTicketBasePrice(concert.getTicketBasePrice());
             concertRecord.setReservationClosed(concert.getReservationClosed());
             concertRepository.save(concertRecord);
+
+            cache.evict(concert.getId());
         }
     }
 
     public void deleteConcert(String concertId) {
         // Your code here
+      concertRepository.deleteById(concertId);
+      cache.evict(concertId);
     }
 }

@@ -3,17 +3,19 @@ package com.kenzie.unit.four.ticketsystem.service;
 import com.kenzie.unit.four.ticketsystem.repositories.PurchaseTicketRepository;
 import com.kenzie.unit.four.ticketsystem.repositories.model.PurchasedTicketRecord;
 import com.kenzie.unit.four.ticketsystem.service.model.PurchasedTicket;
+import com.kenzie.unit.four.ticketsystem.service.model.ReservedTicket;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static java.util.UUID.randomUUID;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class PurchasedTicketServiceTest {
     private PurchaseTicketRepository purchaseTicketRepository;
@@ -30,6 +32,40 @@ public class PurchasedTicketServiceTest {
     /** ------------------------------------------------------------------------
      *  purchasedTicketService.purchaseTicket
      *  ------------------------------------------------------------------------ **/
+    @Test
+    void purchaseTicketGoodCase(){
+        ReservedTicket reservedTickMock = new ReservedTicket("123","456", "test",
+        false, null, false);
+
+        PurchasedTicket purchasedTicket = new PurchasedTicket(reservedTickMock.getConcertId(),
+                reservedTickMock.getTicketId(), "test", 100.0);
+
+        PurchasedTicketRecord purchasedTicketRecord = new PurchasedTicketRecord();
+        purchasedTicketRecord.setConcertId(purchasedTicket.getConcertId());
+        purchasedTicketRecord.setTicketId(purchasedTicket.getTicketId());
+        purchasedTicketRecord.setDateOfPurchase(purchasedTicket.getDateOfPurchase());
+        purchasedTicketRecord.setPricePaid(purchasedTicket.getPricePaid());
+
+        ReservedTicket updatedReservedTicketMock = new ReservedTicket("123","456", "test",
+                true, "test", true);
+
+        ArgumentCaptor<PurchasedTicketRecord> captor = ArgumentCaptor.forClass(PurchasedTicketRecord.class);
+
+
+        when(reservedTicketService.findByReserveTicketId(reservedTickMock.getTicketId())).thenReturn(reservedTickMock);
+        when(reservedTicketService.updateReserveTicket(updatedReservedTicketMock)).thenReturn(updatedReservedTicketMock);
+
+        PurchasedTicket mockResults = purchasedTicketService.purchaseTicket(reservedTickMock.getTicketId(), 100.0);
+        verify(purchaseTicketRepository).save(captor.capture());
+
+        PurchasedTicketRecord capturedRecord = captor.getValue();
+
+        Assertions.assertEquals(mockResults.getConcertId(), capturedRecord.getConcertId());
+        Assertions.assertEquals(mockResults.getTicketId(), capturedRecord.getTicketId());
+        Assertions.assertEquals(mockResults.getDateOfPurchase(), capturedRecord.getDateOfPurchase());
+        Assertions.assertEquals(mockResults.getPricePaid(), capturedRecord.getPricePaid());
+
+    }
 
     // Write additional tests here
 

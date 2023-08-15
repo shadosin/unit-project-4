@@ -12,8 +12,10 @@ import org.mockito.ArgumentCaptor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static java.util.UUID.randomUUID;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -61,23 +63,23 @@ public class ConcertServiceTest {
 
         // THEN
         Assertions.assertNotNull(concerts, "The concert list is returned");
-        Assertions.assertEquals(2, concerts.size(), "There are two concerts");
+        assertEquals(2, concerts.size(), "There are two concerts");
 
         for (Concert concert : concerts) {
             if (concert.getId() == record1.getId()) {
-                Assertions.assertEquals(record1.getId(), concert.getId(), "The concert id matches");
-                Assertions.assertEquals(record1.getName(), concert.getName(), "The concert name matches");
-                Assertions.assertEquals(record1.getDate(), concert.getDate(), "The concert date matches");
-                Assertions.assertEquals(record1.getTicketBasePrice(), concert.getTicketBasePrice(), "The concert ticket price matches");
-                Assertions.assertEquals(record1.getReservationClosed(), concert.getReservationClosed(), "The concert reservation closed flag matches");
+                assertEquals(record1.getId(), concert.getId(), "The concert id matches");
+                assertEquals(record1.getName(), concert.getName(), "The concert name matches");
+                assertEquals(record1.getDate(), concert.getDate(), "The concert date matches");
+                assertEquals(record1.getTicketBasePrice(), concert.getTicketBasePrice(), "The concert ticket price matches");
+                assertEquals(record1.getReservationClosed(), concert.getReservationClosed(), "The concert reservation closed flag matches");
             } else if (concert.getId() == record2.getId()) {
-                Assertions.assertEquals(record2.getId(), concert.getId(), "The concert id matches");
-                Assertions.assertEquals(record2.getName(), concert.getName(), "The concert name matches");
-                Assertions.assertEquals(record2.getDate(), concert.getDate(), "The concert date matches");
-                Assertions.assertEquals(record2.getTicketBasePrice(), concert.getTicketBasePrice(), "The concert ticket price matches");
-                Assertions.assertEquals(record2.getReservationClosed(), concert.getReservationClosed(), "The concert reservation closed flag matches");
+                assertEquals(record2.getId(), concert.getId(), "The concert id matches");
+                assertEquals(record2.getName(), concert.getName(), "The concert name matches");
+                assertEquals(record2.getDate(), concert.getDate(), "The concert date matches");
+                assertEquals(record2.getTicketBasePrice(), concert.getTicketBasePrice(), "The concert ticket price matches");
+                assertEquals(record2.getReservationClosed(), concert.getReservationClosed(), "The concert reservation closed flag matches");
             } else {
-                Assertions.assertTrue(false, "Concert returned that was not in the records!");
+                assertTrue(false, "Concert returned that was not in the records!");
             }
         }
     }
@@ -103,11 +105,11 @@ public class ConcertServiceTest {
 
         // THEN
         Assertions.assertNotNull(concert, "The concert is returned");
-        Assertions.assertEquals(record.getId(), concert.getId(), "The concert id matches");
-        Assertions.assertEquals(record.getName(), concert.getName(), "The concert name matches");
-        Assertions.assertEquals(record.getDate(), concert.getDate(), "The concert date matches");
-        Assertions.assertEquals(record.getTicketBasePrice(), concert.getTicketBasePrice(), "The concert ticket price matches");
-        Assertions.assertEquals(record.getReservationClosed(), concert.getReservationClosed(), "The concert reservation closed flag matches");
+        assertEquals(record.getId(), concert.getId(), "The concert id matches");
+        assertEquals(record.getName(), concert.getName(), "The concert name matches");
+        assertEquals(record.getDate(), concert.getDate(), "The concert date matches");
+        assertEquals(record.getTicketBasePrice(), concert.getTicketBasePrice(), "The concert ticket price matches");
+        assertEquals(record.getReservationClosed(), concert.getReservationClosed(), "The concert reservation closed flag matches");
     }
 
     /** ------------------------------------------------------------------------
@@ -134,11 +136,11 @@ public class ConcertServiceTest {
         ConcertRecord record = concertRecordCaptor.getValue();
 
         Assertions.assertNotNull(record, "The concert record is returned");
-        Assertions.assertEquals(record.getId(), concert.getId(), "The concert id matches");
-        Assertions.assertEquals(record.getName(), concert.getName(), "The concert name matches");
-        Assertions.assertEquals(record.getDate(), concert.getDate(), "The concert date matches");
-        Assertions.assertEquals(record.getTicketBasePrice(), concert.getTicketBasePrice(), "The concert ticket price matches");
-        Assertions.assertEquals(record.getReservationClosed(), concert.getReservationClosed(), "The concert reservation closed flag matches");
+        assertEquals(record.getId(), concert.getId(), "The concert id matches");
+        assertEquals(record.getName(), concert.getName(), "The concert name matches");
+        assertEquals(record.getDate(), concert.getDate(), "The concert date matches");
+        assertEquals(record.getTicketBasePrice(), concert.getTicketBasePrice(), "The concert ticket price matches");
+        assertEquals(record.getReservationClosed(), concert.getReservationClosed(), "The concert reservation closed flag matches");
     }
 
     /** ------------------------------------------------------------------------
@@ -146,11 +148,42 @@ public class ConcertServiceTest {
      *  ------------------------------------------------------------------------ **/
 
     // Write additional tests here
+    @Test
+    void updateConcertUpdates(){
+        String concertId = UUID.randomUUID().toString();
+        Concert existingConcert = new Concert(concertId, "Old Name", "Old Date", 20.0, true);
+        Concert updatedConcert = new Concert(concertId, "New Name", "New Date", 30.0, false);
+
+        when(concertRepository.existsById(concertId)).thenReturn(true);
+
+
+        // Act
+        concertService.updateConcert(updatedConcert);
+
+        // Assert
+        ArgumentCaptor<ConcertRecord> captor = ArgumentCaptor.forClass(ConcertRecord.class);
+        verify(concertRepository).save(captor.capture());
+
+        ConcertRecord savedConcert = captor.getValue();
+        assertEquals(concertId, savedConcert.getId());
+        assertEquals("New Name", savedConcert.getName());
+        assertEquals("New Date", savedConcert.getDate());
+        assertEquals(30.0, savedConcert.getTicketBasePrice());
+        assertFalse(savedConcert.getReservationClosed());
+    }
+
 
     /** ------------------------------------------------------------------------
      *  concertService.deleteConcert
      *  ------------------------------------------------------------------------ **/
 
     // Write additional tests here
+    @Test
+    void deleteConcertWorks(){
+        String concertId = UUID.randomUUID().toString();
 
+        concertService.deleteConcert(concertId);
+
+        verify(concertRepository).deleteById(concertId);
+    }
 }
